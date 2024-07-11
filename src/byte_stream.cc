@@ -1,20 +1,39 @@
 #include "byte_stream.hh"
+#include <cstdio>
+#include <iterator>
+#include <ranges>
 
 using namespace std;
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer_( capacity_ + 1 ) {}
 
 bool Writer::is_closed() const
 {
-  // Your code here.
-  return {};
+  return has_close();
 }
 
 void Writer::push( string data )
 {
-  // Your code here.
-  (void)data;
-  return;
+  if ( has_close() ) {
+    return;
+  }
+
+  auto left_size = capacity_ - write_bytes_size_;
+
+  if ( left_size == 0 ) {
+    buffer_.push_back( EOF );
+    set_close();
+  }
+
+  if ( left_size <= data.size() ) {
+    std::ranges::copy_n( buffer_.begin(), left_size, std::back_inserter( data ) );
+    buffer_.push_back( EOF );
+    write_bytes_size_ += left_size;
+    set_close();
+  }
+
+  std::ranges::copy_n( buffer_.begin(), data.size(), std::back_inserter( data ) );
+  write_bytes_size_ += data.size();
 }
 
 void Writer::close()
