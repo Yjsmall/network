@@ -1,84 +1,89 @@
 #include "byte_stream.hh"
 #include <cstdio>
-#include <iterator>
-#include <ranges>
 
 using namespace std;
 
-ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ), buffer_( capacity_ + 1 ) {}
+ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ) {}
 
 bool Writer::is_closed() const
 {
-  return has_close();
+  return closed_;
 }
 
 void Writer::push( string data )
 {
-  if ( has_close() ) {
+  if ( is_closed() ) {
     return;
   }
 
-  auto left_size = capacity_ - write_bytes_size_;
-
-  if ( left_size == 0 ) {
-    buffer_.push_back( EOF );
-    set_close();
+  if ( data.size() > available_capacity() ) {
+    data.resize( available_capacity() );
   }
 
-  if ( left_size <= data.size() ) {
-    std::ranges::copy_n( buffer_.begin(), left_size, std::back_inserter( data ) );
-    buffer_.push_back( EOF );
-    write_bytes_size_ += left_size;
-    set_close();
+  if ( !data.empty() ) {
+    write_bytes_size_ += data.size();
+    buffer_size_ += data.size();
+    buffer_.emplace_back( data );
   }
 
-  std::ranges::copy_n( buffer_.begin(), data.size(), std::back_inserter( data ) );
-  write_bytes_size_ += data.size();
+  if ( wnd.empty() && !buffer_.empty() ) {
+    wnd = buffer_.front();
+  }
 }
 
 void Writer::close()
 {
-  // Your code here.
+  if ( !is_closed() ) {
+    closed_ = true;
+    buffer_.emplace_back( std::string( 1, EOF ) );
+  }
 }
 
 uint64_t Writer::available_capacity() const
 {
-  // Your code here.
-  return {};
+  return capacity_ - buffer_size_;
 }
 
 uint64_t Writer::bytes_pushed() const
 {
-  // Your code here.
-  return {};
+  return write_bytes_size_;
 }
+
+/* Reader implementation */
 
 bool Reader::is_finished() const
 {
-  // Your code here.
-  return {};
+  return closed_ && bytes_buffered() == 0;
 }
 
 uint64_t Reader::bytes_popped() const
 {
-  // Your code here.
-  return {};
+  return read_bytes_size_;
 }
 
 string_view Reader::peek() const
 {
-  // Your code here.
-  return {};
+  return wnd;
 }
 
 void Reader::pop( uint64_t len )
 {
-  // Your code here.
-  (void)len;
+  auto remainder = len;
+  while ( remainder >= wnd.size() && remainder != 0 ) {
+    remainder -= wnd.size();
+    buffer_.pop_front();
+    wnd = buffer_.empty() ? string_view() : buffer_.front();
+  }
+
+  if ( !wnd.empty() ) {
+    wnd.remove_prefix( remainder );
+  }
+
+  read_bytes_size_ += len;
+  buffer_size_ -= len;
 }
 
 uint64_t Reader::bytes_buffered() const
 {
-  // Your code here.
-  return {};
+  return buffer_size_;
 }
