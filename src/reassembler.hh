@@ -57,9 +57,10 @@ public:
   const Writer& writer() const { return output_.writer(); }
 
 private:
+  void merge_intervel();
+
   ByteStream output_; // the Reassembler writes to this ByteStream
   std::set<Interval> buffer_{};
   uint64_t nxt_assembled_idx_{0};
   uint64_t EOF_idx_ = UINT64_MAX;
-  // uint64_t pending_size_{};
 };
