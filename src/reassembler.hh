@@ -1,16 +1,18 @@
 #pragma once
 
 #include "byte_stream.hh"
-#include <string>
 #include <set>
+#include <string>
 
-struct Interval {
+struct Interval
+{
   uint64_t start_;
   uint64_t end_;
   std::string data_;
 
-  bool operator<(const Interval& other) const {
-    if (start_ == other.start_) {
+  bool operator<( const Interval& other ) const
+  {
+    if ( start_ == other.start_ ) {
       return end_ < other.end_;
     }
 
@@ -60,7 +62,7 @@ private:
   void merge_intervel();
 
   ByteStream output_; // the Reassembler writes to this ByteStream
-  std::set<Interval> buffer_{};
-  uint64_t nxt_assembled_idx_{0};
+  std::set<Interval> buffer_ {};
+  uint64_t nxt_assembled_idx_ { 0 };
   uint64_t EOF_idx_ = UINT64_MAX;
 };
