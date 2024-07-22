@@ -10,16 +10,17 @@ using namespace std;
 
 void TCPReceiver::receive( TCPSenderMessage message )
 {
-  auto const& writer_end = writer();
-  if ( writer_end.has_error() ) {
-    return;
-  }
-
   if ( message.RST ) {
     reader().set_error();
     return;
   }
 
+  auto const& writer_end = writer();
+  if ( writer_end.has_error() ) {
+    return;
+  }
+
+  // find the first message and set the ISN
   if ( !ISN_.has_value() ) {
     if ( !message.SYN ) {
       return;
@@ -30,6 +31,7 @@ void TCPReceiver::receive( TCPSenderMessage message )
   Wrap32 zero_point = ISN_.value();
   uint64_t checkpoint = writer_end.bytes_pushed() + static_cast<uint32_t>( message.SYN );
   uint64_t asb_seqno = message.seqno.unwrap( zero_point, checkpoint );
+  // NOTE: message.SYN - 1 will be 0 in the first initialization and no negative number
   uint64_t stream_idx = asb_seqno + static_cast<uint64_t>( message.SYN ) - 1;
   reassembler_.insert( stream_idx, std::move( message.payload ), message.FIN );
 }
