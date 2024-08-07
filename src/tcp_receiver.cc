@@ -43,9 +43,8 @@ TCPReceiverMessage TCPReceiver::send() const
     = static_cast<uint16_t>( min( writer_end.available_capacity(), static_cast<uint64_t>( UINT16_MAX ) ) );
   bool reset = writer_end.has_error();
   if ( ISN_.has_value() ) {
-    Wrap32 ackno
-      = Wrap32::wrap( writer_end.bytes_pushed() + static_cast<uint64_t>( writer_end.is_closed() ), ISN_.value() )
-        + 1;
+    auto abs_seq = writer_end.bytes_pushed() + static_cast<uint64_t>( writer_end.is_closed() );
+    Wrap32 ackno = Wrap32::wrap(abs_seq, ISN_.value()) + 1;
     return TCPReceiverMessage { ackno, wnd_size, reset };
   }
   return TCPReceiverMessage { nullopt, wnd_size, reset };
