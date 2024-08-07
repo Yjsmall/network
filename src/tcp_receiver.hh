@@ -27,6 +27,6 @@ public:
 
 private:
   Reassembler reassembler_;
-  // Inital Sequence Number
+  // Initial Sequence Number
   std::optional<Wrap32> ISN_ {};
 };
