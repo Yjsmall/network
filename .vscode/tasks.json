@@ -24,7 +24,7 @@
         {
             "type": "shell",
             "label": "build project",
-            "command": "cd build && make -j8",
+            "command": "cd build && make -j12",
             "args": [],
         },
     ],
