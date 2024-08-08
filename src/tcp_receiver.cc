@@ -44,7 +44,7 @@ TCPReceiverMessage TCPReceiver::send() const
   bool reset = writer_end.has_error();
   if ( ISN_.has_value() ) {
     auto abs_seq = writer_end.bytes_pushed() + static_cast<uint64_t>( writer_end.is_closed() );
-    Wrap32 ackno = Wrap32::wrap(abs_seq, ISN_.value()) + 1;
+    Wrap32 ackno = Wrap32::wrap( abs_seq, ISN_.value() ) + 1;
     return TCPReceiverMessage { ackno, wnd_size, reset };
   }
   return TCPReceiverMessage { nullopt, wnd_size, reset };
