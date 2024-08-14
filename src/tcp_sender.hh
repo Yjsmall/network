@@ -6,10 +6,27 @@
 
 #include <cstdint>
 #include <functional>
-#include <list>
-#include <memory>
-#include <optional>
 #include <queue>
+
+class RetransmissionTimer
+{
+public:
+  RetransmissionTimer( uint64_t RTO_ms ) : RTO_ms_( RTO_ms ) {}
+  bool is_actived() const noexcept { return actived_; }
+  bool is_expired() const noexcept { return actived_ && time_elapsed >= RTO_ms_; }
+  void stop() noexcept { actived_ = false; }
+
+  void active() noexcept;
+  void tick( uint64_t ms_since_last_tick ) noexcept;
+  void reset() noexcept;
+  void expand() noexcept;
+  void set_RTO( uint64_t ms ) noexcept;
+
+private:
+  uint64_t RTO_ms_;
+  uint64_t time_elapsed { 0 };
+  bool actived_ {};
+};
 
 class TCPSender
 {
@@ -48,4 +65,17 @@ private:
   ByteStream input_;
   Wrap32 isn_;
   uint64_t initial_RTO_ms_;
+
+  std::queue<TCPSenderMessage> outstanding_messages_ {};
+
+  bool SYN_flag_ {};
+  bool FIN_flag_ {};
+
+  uint64_t wnd_size_ { 1 };
+  uint64_t sentno_ { 0 };
+  uint64_t ackno_ { 0 };
+
+  uint64_t retransmission_times_ { 0 };
+
+  RetransmissionTimer timer_ { initial_RTO_ms_ };
 };

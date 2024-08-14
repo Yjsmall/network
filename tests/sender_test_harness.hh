@@ -3,7 +3,6 @@
 #include "common.hh"
 #include "tcp_config.hh"
 #include "tcp_receiver_message.hh"
-#include "tcp_segment.hh"
 #include "tcp_sender.hh"
 #include "wrapping_integers.hh"
 
